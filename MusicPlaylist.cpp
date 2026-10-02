@@ -6,7 +6,20 @@
 // Student 1 implements the functions marked "STUDENT 1" below.
 // Student 2 implements the functions marked "STUDENT 2" below.
 
+//Student 1 & 2: Margaret Taylor
+
 #include "MusicPlaylist.h"
+
+//function to update song numbers sequentially
+static void updateSongNumbers(SongNode* head) {
+
+    int pos = 1;
+    SongNode* cur = head;
+    while (cur != nullptr) {
+        cur->songNumber = pos++;
+        cur = cur->next;
+    }
+}
 
 // ---------------------------------------------------------------------
 // Already implemented - do not modify
@@ -57,38 +70,74 @@ ostream& operator<<(ostream& os, const MusicPlaylist& list) {
 // Traverses the list looking for the given song name and returns a
 // pointer to the first node with that name, or nullptr if not present.
 SongNode* MusicPlaylist::getSongNode(const string song) {
-    // TODO (Student 1): implement per the spec in the Description doc.
+    SongNode* cur = head;
+    while (cur != nullptr) {
+        if (cur->songName == song) {
+            return cur;
+        }
+        cur = cur->next;
+    }
     return nullptr;
 }
 
 // Adds a new song at the head of the playlist. All other song numbers
 // shift up by one. No artist is given, so use an empty string.
 void MusicPlaylist::addSong(const string addedSongName) {
-    // TODO (Student 1): implement per the spec in the Description doc.
-    // Reminder: this is a doubly linked list -- when you link the new
-    // node in, set BOTH its prev and next, and fix the old head's prev.
+
+    SongNode* newNode = new SongNode(addedSongName, "", 1, nullptr, head);
+
+    if (head != nullptr) {
+        head->prev = newNode;
+    } else {
+        tail = newNode;
+    }
+    head = newNode;
+    numSongs++;
+
+    updateSongNumbers(head);
 }
 
 // Adds a new song at position songOrder (valid range 1..numSongs).
 // If songOrder < 2, place at the head; if songOrder > numSongs, place
 // at the tail. No artist is given, so use an empty string.
 void MusicPlaylist::addSong(const string addedSongName, const int songOrder) {
-    // TODO (Student 1): implement per the spec in the Description doc.
-    // Reminder: this is a doubly linked list -- whichever node(s) you
-    // splice next to, fix BOTH their prev and next pointers, not just next.
+    addSong(addedSongName, songOrder, "");
 }
 
 // Deletes the song node with the given name, if present.
 void MusicPlaylist::deleteSong(const string deletedSongName) {
-    // TODO (Student 1): implement per the spec in the Description doc.
-    // Reminder: this is a doubly linked list -- fix BOTH the prev and
-    // next pointers of the deleted node's neighbors before you delete it.
+    SongNode* target = getSongNode(deletedSongName);
+
+    //if the song isnt found or list empty
+    if (target == nullptr) {
+        return; 
+    }
+
+    if (target->prev != nullptr) {
+        target->prev->next = target->next;
+    } else {
+        head = target->next;
+    }
+
+    if (target->next != nullptr) {
+        target->next->prev = target->prev;
+    } else {
+        tail = target->prev; // Deleting tail node
+    }
+
+    delete target;
+    numSongs--;
+
+    updateSongNumbers(head);
 }
 
 // Searches for searchedSongName and returns its song number if found,
 // or -1 if it is not in the playlist.
 int MusicPlaylist::getSongNum(const string searchedSongName) {
-    // TODO (Student 1): implement per the spec in the Description doc.
+    SongNode* target = getSongNode(searchedSongName);
+    if (target != nullptr) {
+        return target->songNumber;
+    }
     return -1;
 }
 
@@ -100,37 +149,98 @@ int MusicPlaylist::getSongNum(const string searchedSongName) {
 // Return head if songNumber < 2, tail if songNumber >= numSongs, or the
 // first node whose song number is at least songNumber.
 SongNode* MusicPlaylist::getSongNode(const int songNumber) {
-    // TODO (Student 2): implement per the spec in the Description doc.
-    return nullptr;
+    if (head == nullptr) {
+        return nullptr;
+    }
+    if (songNumber < 2) {
+        return head;
+    }
+    if (songNumber >= numSongs) {
+        return tail;
+    }
+
+    SongNode* cur = head;
+    while (cur != nullptr) {
+        if (cur->songNumber >= songNumber) {
+            return cur;
+        }
+        cur = cur->next;
+    }
+    return tail;
 }
 
 // Adds a new song at position songOrder (valid range 1..numSongs) with
 // the given artist. If songOrder < 2, place at the head; if
 // songOrder > numSongs, place at the tail.
 void MusicPlaylist::addSong(const string addedSongName, const int songOrder, const string artistName) {
-    // TODO (Student 2): implement per the spec in the Description doc.
-    // Reminder: this is a doubly linked list -- whichever node(s) you
-    // splice next to, fix BOTH their prev and next pointers, not just next.
+    if (head == nullptr || songOrder < 2) {
+        SongNode* newNode = new SongNode(addedSongName, artistName, 1, nullptr, head);
+
+        if (head != nullptr) {
+            head->prev = newNode;
+        } else {
+            tail = newNode;
+        }
+        head = newNode;
+    } else if (songOrder > numSongs) {
+        SongNode* newNode = new SongNode(addedSongName, artistName, numSongs + 1, tail, nullptr);
+
+        if (tail != nullptr) {
+            tail->next = newNode;
+        } else {
+            head = newNode;
+        }
+        tail = newNode;
+    } else {
+        // Insert in middle (before target node at songOrder)
+        SongNode* target = getSongNode(songOrder);
+        SongNode* newNode = new SongNode(addedSongName, artistName, songOrder, target->prev, target);
+
+        if (target->prev != nullptr) {
+            target->prev->next = newNode;
+        }
+        target->prev = newNode;
+    }
+
+    numSongs++;
+    updateSongNumbers(head);
 }
 
 // Deletes the last song in the playlist (at the tail).
 void MusicPlaylist::deleteLastSong() {
-    // TODO (Student 2): implement per the spec in the Description doc.
+
+
+    if (tail == nullptr) {
+        return; 
+    }
+
+    SongNode* target = tail;
+    if (head == tail) {
+        head = nullptr;
+        tail = nullptr;
+    } else {
+        tail = tail->prev;
+        tail->next = nullptr;
+    }
+
+    delete target;
+    numSongs--;
+    updateSongNumbers(head);
 }
 
 // Deletes the song node at the given position (songNumInList). Delete
 // the first song if songNumInList < 2, or the last node if
 // songNumInList >= numSongs.
 void MusicPlaylist::deleteSong(const int songNumInList) {
-    // TODO (Student 2): implement per the spec in the Description doc.
-    // Reminder: this is a doubly linked list -- fix BOTH the prev and
-    // next pointers of the deleted node's neighbors before you delete it.
+    if (head == nullptr) {
+        return;
+    }
+//
 }
 
 // Returns the name of the song at the given position. Return the head's
 // name if songNumInList < 2, and the tail's name if
 // songNumInList >= numSongs. For an empty list, return "Empty Play List".
 string MusicPlaylist::getSongName(const int songNumInList) {
-    // TODO (Student 2): implement per the spec in the Description doc.
-    return "Empty Play List";
+
 }
