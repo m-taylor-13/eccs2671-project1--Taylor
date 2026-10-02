@@ -36,7 +36,7 @@ MusicPlaylist::~MusicPlaylist() {
         SongNode* toDelete = cur;
         cur = cur->next;
         delete toDelete;
-    }
+    }//
     head = nullptr;
     tail = nullptr;
     numSongs = 0;
@@ -235,6 +235,31 @@ void MusicPlaylist::deleteSong(const int songNumInList) {
     if (head == nullptr) {
         return;
     }
+
+    if(songNumInList < 2){
+        SongNode* target = head;
+        head = head->next;
+
+        if(head !=nullptr){head->prev = nullptr;}
+        else {tail = nullptr;}
+
+        delete target;
+    } else if (songNumInList >= numSongs){
+        deleteLastSong();
+        return;
+    } else{
+
+        SongNode* target = getSongNode(songNumInList);
+        if (target != nullptr) {
+            if (target->prev != nullptr) {
+                target->prev->next = target->next;
+            }
+            if (target->next != nullptr) {
+                target->next->prev = target->prev;
+            }
+            delete target;
+        }
+    }
 //
 }
 
@@ -242,5 +267,22 @@ void MusicPlaylist::deleteSong(const int songNumInList) {
 // name if songNumInList < 2, and the tail's name if
 // songNumInList >= numSongs. For an empty list, return "Empty Play List".
 string MusicPlaylist::getSongName(const int songNumInList) {
+    if(head == nullptr){
+        return "Empty Play List";
 
+    }
+    if(songNumInList < 2){
+        return head->songName;
+    }
+    if(songNumInList >= numSongs){
+        return tail->songName;
+    }
+
+    SongNode* target = getSongNode(songNumInList);
+
+    if(target !=nullptr){
+        return target->songName;
+    }
+    return "Empty Play List";
+    //
 }
